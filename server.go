@@ -1,10 +1,11 @@
 package main
 
 import (
-"net/http"
-"github.com/gorilla/websocket"
-"graduation_project_socket/extend/webskt/"
-"time"
+	"net/http"
+	"github.com/gorilla/websocket"
+	"graduation_project_socket/extend/wbskt"
+	"time"
+	"fmt"
 )
 var(
 	upgrader = websocket.Upgrader{
@@ -20,7 +21,7 @@ func wsHandler(w http.ResponseWriter , r *http.Request){
 	var(
 		wsConn *websocket.Conn
 		err error
-		conn *impl.Connection
+		conn *wbskt.Connection
 		data []byte
 	)
 	// 完成ws协议的握手操作
@@ -29,7 +30,7 @@ func wsHandler(w http.ResponseWriter , r *http.Request){
 		return
 	}
 
-	if conn , err = impl.InitConnection(wsConn); err != nil{
+	if conn , err = wbskt.InitConnection(wsConn); err != nil{
 		goto ERR
 	}
 
@@ -40,7 +41,7 @@ func wsHandler(w http.ResponseWriter , r *http.Request){
 			if err = conn.WriteMessage([]byte("heartbeat"));err != nil{
 				return
 			}
-			time.Sleep(1*time.Second)
+			time.Sleep(time.Duration(1)*time.Second)
 		}
 	}()
 
@@ -48,6 +49,7 @@ func wsHandler(w http.ResponseWriter , r *http.Request){
 		if data , err = conn.ReadMessage();err != nil{
 			goto ERR
 		}
+		fmt.Print(data)
 		if err = conn.WriteMessage(data);err !=nil{
 			goto ERR
 		}
