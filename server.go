@@ -5,7 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"graduation_project_socket/extend/wbskt"
 	"time"
-	"fmt"
+	"graduation_project_socket/app"
 )
 var(
 	upgrader = websocket.Upgrader{
@@ -16,47 +16,47 @@ var(
 	}
 )
 
-func wsHandler(w http.ResponseWriter , r *http.Request){
+func wsHandler(w http.ResponseWriter , r *http.Request) {
 	//	w.Write([]byte("hello"))
-	var(
+	var (
 		wsConn *websocket.Conn
-		err error
-		conn *wbskt.Connection
-		data []byte
+		err    error
+		conn   *wbskt.Connection
+		data   []byte
+		event  app.Event
 	)
 	// 完成ws协议的握手操作
 	// Upgrade:websocket
-	if wsConn , err = upgrader.Upgrade(w,r,nil); err != nil{
+	if wsConn, err = upgrader.Upgrade(w, r, nil); err != nil {
 		return
 	}
 
-	if conn , err = wbskt.InitConnection(wsConn); err != nil{
+	if conn, err = wbskt.InitConnection(wsConn); err != nil {
 		goto ERR
 	}
-
+	event.OnConn(conn) // 建立连接
 	// 启动线程，发送心跳
-	go func(){
-		var (err error)
-		for{
-			if err = conn.WriteMessage([]byte("heartbeat"));err != nil{
+	go func() {
+		var (
+			err error
+		)
+		for {
+			if err = conn.WriteMessage([]byte("heartbeat")); err != nil {
 				return
 			}
-			time.Sleep(time.Duration(1)*time.Second)
+			time.Sleep(time.Duration(20) * time.Second)
 		}
 	}()
 
+	// 循环从
 	for {
-		if data , err = conn.ReadMessage();err != nil{
+		if data, err = conn.ReadMessage(); err != nil {
 			goto ERR
 		}
-		fmt.Print(data)
-		if err = conn.WriteMessage(data);err !=nil{
-			goto ERR
-		}
+		event.OnMsg(conn, data)
 	}
-
 ERR:
-	conn.Close()
+	event.OnClose(conn)
 }
 
 func main(){
