@@ -27,7 +27,6 @@ func (db *Db) getCon(){
 		"mysql","root","guoyuzhao123","3306","localhost",
 	}
 	var twoParam = dbConf.user_name + ":" + dbConf.password + "@tcp("+dbConf.host+":"+dbConf.port+")/graduation_project?charset=utf8"
-	fmt.Print(twoParam)
 	db.Conn, _ = sql.Open(dbConf.db_name, twoParam)
 }
 
@@ -40,7 +39,10 @@ func (db *Db) Up(sql string,data ...interface{}) int64 {
 	db.getCon()
 	defer db.Conn.Close()
 	var num int64
-	stmt, _ := db.Conn.Prepare(sql)
+	stmt, err := db.Conn.Prepare(sql)
+	if err != nil {
+		fmt.Print(err)
+	}
 	datas := [][]interface{}{data}
 	for _, val := range datas {
 		res, err := stmt.Exec(val...)

@@ -51,10 +51,12 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 监听退出信号
 	signal.Notify(sigs, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+	// 信号回调
 	go getSignal(conn, event, sigs)
 
 	event.OnConn(conn) // 建立连接
-	// 启动线程，发送心跳
+	// 启动协程，发送心跳
 	go func() {
 		var (
 			err error
